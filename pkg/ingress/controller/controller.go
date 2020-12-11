@@ -86,6 +86,8 @@ const (
 	// It's copied over to kubeadm until it's merged in core: https://github.com/kubernetes/kubernetes/pull/39112
 	LabelNodeRoleMaster = "node-role.kubernetes.io/master"
 
+	LabelExcludeNodeFromLoadbalancing = "octavia.ingress.kubernetes.io/exclude-node-from-loadbalancing"
+
 	// IngressAnnotationInternal is the annotation used on the Ingress
 	// to indicate that we want an internal loadbalancer service so that octavia-ingress-controller won't associate
 	// floating ip to the load balancer VIP.
@@ -205,6 +207,10 @@ func getNodeConditionPredicate() NodeConditionPredicate {
 		// As of 1.6, we will taint the master, but not necessarily mark it unschedulable.
 		// Recognize nodes labeled as master, and filter them also, as we were doing previously.
 		if _, hasMasterRoleLabel := node.Labels[LabelNodeRoleMaster]; hasMasterRoleLabel {
+			return false
+		}
+
+		if _, hasExcludeNodeFromLoadbalancingLabel := node.Labels[LabelExcludeNodeFromLoadbalancing]; hasExcludeNodeFromLoadbalancingLabel {
 			return false
 		}
 
